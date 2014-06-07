@@ -162,8 +162,8 @@ void tsqsortl_serial(long *base, size_t len)
 		/* quicksort */
 //		pivot = *med3(base, base+(len/2), base+len-1);
 		pivot = *selectpivot(base, len);
-		printf("pivot = %ld\n", pivot);
-		printf("before "); for(i = 0; i < len; i++) { printf("%ld, ", base[i]); } printf("\n");
+//		printf("pivot = %ld\n", pivot);
+//		printf("before "); for(i = 0; i < len; i++) { printf("%ld, ", base[i]); } printf("\n");
 		l = ll = base;
 		r = rr = base+len-1; 
 		while(1) {
@@ -186,8 +186,8 @@ void tsqsortl_serial(long *base, size_t len)
 		for(; l < r; l++) {
 			*l = pivot;
 		}
-		printf("after "); for(i = 0; i < len; i++) { printf("%ld, ", base[i]); } printf("\n");
-		printf("divide into %ld and %ld\n", ll-base, base+len-rr);
+//		printf("after "); for(i = 0; i < len; i++) { printf("%ld, ", base[i]); } printf("\n");
+//		printf("divide into %ld and %ld\n", ll-base, base+len-rr);
 		tsqsortl_serial(base, ll-base);
 		tsqsortl_serial(rr, base+len-rr);
 	}
