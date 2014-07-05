@@ -1,17 +1,26 @@
 
+/*
+ * parallel quicksort and ternary split quicksort implementation
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <omp.h>
 #include <pthread.h>
 
-long add_num(long **, long);
+//long add_num(long **, long);
 void qsortl(long *, size_t);
 void qsortl_serial(long *, size_t);
 void tsqsortl(long *, size_t);
 void tsqsortl_serial(long *, size_t);
-long get_us(void);
+//long get_us(void);
 
+#define INSSORT_THRESH		(64)
+#define PARALLEL_THRESH		(100000)
+
+
+#if 0
 void init(long *arr, long len)
 {
 	long i;
@@ -98,11 +107,7 @@ long add_num(long **parr, long num)
 	}
 }
 
-void tsqsortl(long *base, size_t len)
-{
-	tsqsortl_serial(base, len);
-	return;
-}
+#endif
 
 void inline swapl(void *a, void *b)
 {
@@ -139,53 +144,115 @@ long *selectpivot(long *arr, long len)
 	}
 }
 
-void tsqsortl_serial(long *base, size_t len)
+void inssort(long *base, size_t len)
 {
 	long i, j;
+	long tmp;
+	for(i = 1; i < len; i++) {
+	  	tmp = base[i];
+		if(base[i-1] > tmp) {
+			j = i;
+			do {
+				base[j] = base[j-1];
+				--j;
+			} while (j > 0 && base[j-1] > tmp);
+			base[j] = tmp;
+		}
+	}
+	return;
+}
+
+void tsqexchange(long *base, size_t len, long **pll, long **prr)
+{
 	long pivot, *l, *ll, *r, *rr;
 	long tmp, res;
-
-	if(len <= 64) {
-		/* insertion sort */
-		for(i = 1; i < len; i++) {
-		  	tmp = base[i];
-			if(base[i-1] > tmp) {
-				j = i;
-				do {
-					base[j] = base[j-1];
-					--j;
-				} while (j > 0 && base[j-1] > tmp);
-				base[j] = tmp;
-			}
+//	pivot = *med3(base, base+(len/2), base+len-1);
+	pivot = *selectpivot(base, len);
+//	printf("pivot = %ld\n", pivot);
+//	printf("before "); for(i = 0; i < len; i++) { printf("%ld, ", base[i]); } printf("\n");
+	l = ll = base;
+	r = rr = base+len-1; 
+	while(1) {
+		while(l <= r && (res = *l - pivot) <= 0) {
+			if(res == 0) { l++; }
+			l++; ll++;
 		}
+		while(l <= r && (res = *r - pivot) >= 0) {
+			if(res == 0) { r--; }
+			r--; rr--;
+		}
+		/* 終了条件の判定 */
+		if(l > r) {
+			break;
+		}
+		tmp = *r--;
+		*rr-- = *l++;
+		*ll++ = tmp;
+	}
+	for(; l < r; l++) {
+		*l = pivot;
+	}
+	*pll = ll;
+	*prr = rr;
+	return;
+}
+
+
+void tsqsortl(long *base, size_t len)
+{
+	if(len == 0) { return; }
+	if(len < PARALLEL_THRESH) {
+		tsqsortl_serial(base, len);
+	} else {
+		tsqsortl_parallel(base, len);
+	}
+	return;
+}
+
+
+void tsqsortl_parallel(long *base, size_t len)
+{
+	int i;
+	int nth;
+
+	nth = omp_get_num_procs();
+	/* parallelizable section */
+
+	for(i = 0; i < cores; i*=2) {
+#ifdef _OPENMP
+#pragma omp parallel private(i, start, end, n) num_threads(nth)
+#endif
+		{
+			#ifdef _OPENMP
+			n = omp_get_thread_num();
+			#else
+			n = 0;
+			#endif
+			start = len/nth * n;
+			if(n == (nth-1)) {
+				end = len;
+			} else {
+				end = len/nth * (n+1);
+			}
+			tsqexchange(base + start, end - start);
+		}
+		//join
+#ifdef _OPENMP
+#pragma omp parallel private(i, start, end, n) num_threads(nth)
+#endif
+	}
+	return;
+}
+
+
+void tsqsortl_serial(long *base, size_t len)
+{
+	if(len <= INSSORT_THRESH) {
+		/* insertion sort */
+		inssort(base, len);
 	} else {
 		/* quicksort */
-//		pivot = *med3(base, base+(len/2), base+len-1);
-		pivot = *selectpivot(base, len);
-//		printf("pivot = %ld\n", pivot);
-//		printf("before "); for(i = 0; i < len; i++) { printf("%ld, ", base[i]); } printf("\n");
-		l = ll = base;
-		r = rr = base+len-1; 
-		while(1) {
-			while(l <= r && (res = *l - pivot) <= 0) {
-				if(res == 0) { l++; }
-				l++; ll++;
-			}
-			while(l <= r && (res = *r - pivot) >= 0) {
-				if(res == 0) { r--; }
-				r--; rr--;
-			}
-			/* 終了条件の判定 */
-			if(l > r) {
-				break;
-			}
-			tmp = *r--;
-			*rr-- = *l++;
-			*ll++ = tmp;
-		}
-		for(; l < r; l++) {
-			*l = pivot;
-		}
+		tsqexchange(base, len, &ll, &rr);
 //		printf("after "); for(i = 0; i < len; i++) { printf("%ld, ", base[i]); } printf("\n");
 //		printf("divide into %ld and %ld\n", ll-base, base+len-rr);
 		tsqsortl_serial(base, ll-base);
