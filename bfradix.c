@@ -1,18 +1,30 @@
 
+/**
+ * @file bfradix.c
+ *
+ * @brief an implementation of integer radix sort with write-combining.
+ *
+ * @detail
+ *
+ */
 #include <stdlib.h>
 #include <string.h>
 #include <omp.h>
 
-#define BFR_OCC_SIZE		(256)
-#define BFR_BUF_SIZE		(64)
-#define BFR_USE_BUFFERING	(1)
+#define BFR_OCC_SIZE		(256)		/** integer key will be split into 8-bit */
+#define BFR_BUF_SIZE		(64)		/** should be the same size as a cache line */
+#define BFR_USE_BUFFERING	(1)			/** 1: yes, 0: no */
 
 
 #ifdef _USE_DEBUG
 #include <stdio.h>
 #endif /* _USE_DEBUG */
 
-
+/**
+ * @union _byte8
+ *
+ * @detail deprecated...!!!
+ */
 typedef union _byte8 {
 	unsigned char _c[8];
 	unsigned short _s[4];
@@ -22,6 +34,11 @@ typedef union _byte8 {
 
 #ifdef _USE_DEBUG
 
+/**
+ * @fn print_arr
+ *
+ * @brief print a content of current array.
+ */
 void static
 print_arr(char const *str, long *arr, long len)
 {
@@ -33,6 +50,11 @@ print_arr(char const *str, long *arr, long len)
 	return;
 }
 
+/**
+ * @fn print_occ
+ *
+ * @brief print a content of the occurence buffer
+ */
 void static
 print_occ(char const *str, long (*occ)[BFR_OCC_SIZE], long size)
 {
@@ -50,6 +72,11 @@ print_occ(char const *str, long (*occ)[BFR_OCC_SIZE], long size)
 
 #endif /* _USE_DEBUG */
 
+/**
+ * @fn count_occ
+ *
+ * @brief construct the next occurrence buffer
+ */
 void static
 count_occ(
 	long *arr,
@@ -65,6 +92,9 @@ count_occ(
 #pragma omp parallel private(i, start, end, n) num_threads(nth)
 #endif
 	{
+		/**
+		 * multicore support
+		 */
 		#ifdef _OPENMP
 		n = omp_get_thread_num();
 		#else
@@ -76,15 +106,22 @@ count_occ(
 		} else {
 			end = len/nth * (n+1);
 		}
-//		printf("from %ld to %ld\n", start, end);
+
+		/**
+		 * count occurence
+		 */
 		for(i = start; i < end; i++) {
 			occ[n][(size_t)((byte8 *)arr)[i]._c[depth]]++;
 		}
 	}
-//	print_occ("after counting", occ, nth);
 	return;
 }
 
+/**
+ * @fn calc_start_point
+ *
+ * @brief 
+ */
 void static
 calc_start_point(
 	long (*occ)[BFR_OCC_SIZE],
@@ -100,7 +137,6 @@ calc_start_point(
 			sum += temp_l;
 		}
 	}
-//	print_occ("after calc sum", occ, nth);
 	return;
 }
 
@@ -124,6 +160,9 @@ parallel_sort(
 #pragma omp parallel private(i, j, start, end, n, bin, tmp) num_threads(nth)
 #endif
 	{
+		/**
+		 * multicore support
+		 */
 		#ifdef _OPENMP
 		n = omp_get_thread_num();
 		#else
@@ -135,11 +174,9 @@ parallel_sort(
 		} else {
 			end = len/nth * (n+1);
 		}
-//		printf("from %ld to %ld\n", start, end);
-//		printf("%ld\n", buf_cnt[n][0]);
-/*		for(i = 0; i < BFR_OCC_SIZE; i++) {
-			buf_cnt[n][i][0] = buf_cnt[n][i][1] = occ[n][i] & 0x3f;
-		}*/
+		/**
+		 * 
+		 */
 		for(i = start; i < end; i++) {
 			#ifdef BFR_USE_BUFFERING		
 			bin = ((byte8 *)src)[i]._c[depth];
@@ -200,6 +237,7 @@ bfradix(long *arr, long len)
 	short (*buf_cnt)[BFR_OCC_SIZE];
 	#ifdef _OPENMP
 	threads = omp_get_num_procs();
+	threads = 4;
 	#else
 	threads = 1;
 	#endif

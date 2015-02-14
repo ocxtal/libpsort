@@ -1,7 +1,8 @@
 
-
+#include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include <string.h>
+#include <sys/time.h>
 
 
 extern int bfradix(long *arr, long len);
@@ -53,15 +54,13 @@ int test(long len, int (*func)(long *, long))
 	long i;
 	long start, end;
 	int fail = 0;
-
+/*
 	#ifdef BFR_USE_BUFFERING
 	fprintf(stderr, "written in C with parallel radixsort implementation (with bufferd scatter)\n");
 	#else
 	fprintf(stderr, "written in C with parallel radixsort implementation\n");
 	#endif
-
-	len = atol(argv[1]);
-	fprintf(stderr, "length: %ld\n", len);
+*/
 	start = get_us();
 	arr = (long *)malloc(len * sizeof(long));
 	init(arr, len);
@@ -69,7 +68,7 @@ int test(long len, int (*func)(long *, long))
 	fprintf(stderr, "elapsed time - fill array: %ld us\n", end - start);
 
 	start = get_us();
-	parallel_radixsort(arr, len);
+	func(arr, len);
 	end = get_us();
 	fprintf(stderr, "elapsed time - sort: %ld us\n", end - start);
 
@@ -86,12 +85,23 @@ int test(long len, int (*func)(long *, long))
 
 int main(int argc, char *argv[])
 {
+	long len;
+	int (*func)(long *, long);
 
-	if(argc != 2) {
-		printf("usage: ./main <len>\n");
+	if(argc != 3) {
+		printf("usage: ./main <alg> <len>\n");
 		exit(1);
 	}
 
+	if(strcmp(argv[1], "bfradix") == 0) {
+		func = bfradix;
+	} else if(strcmp(argv[1], "tsquick") == 0) {
+//		func = tsquick;
+	}
+	len = atol(argv[2]);
+	fprintf(stderr, "length: %ld\n", len);
+
+	test(len, func);
 	return 0;
 }
 

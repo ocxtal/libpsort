@@ -192,33 +192,23 @@ void tsqexchange(long *base, size_t len, long **pll, long **prr)
 	for(; l < r; l++) {
 		*l = pivot;
 	}
-	*pll = ll;
-	*prr = rr;
+	if(pll) { *pll = ll; }
+	if(prr) { *prr = rr; }
 	return;
 }
-
-
-void tsqsortl(long *base, size_t len)
-{
-	if(len == 0) { return; }
-	if(len < PARALLEL_THRESH) {
-		tsqsortl_serial(base, len);
-	} else {
-		tsqsortl_parallel(base, len);
-	}
-	return;
-}
-
 
 void tsqsortl_parallel(long *base, size_t len)
 {
 	int i;
 	int nth;
+	size_t start, end;
+	int n;
 
 	nth = omp_get_num_procs();
+	nth = 4;
 	/* parallelizable section */
 
-	for(i = 0; i < cores; i*=2) {
+	for(i = 0; i < nth; i*=2) {
 #ifdef _OPENMP
 #pragma omp parallel private(i, start, end, n) num_threads(nth)
 #endif
@@ -234,19 +224,32 @@ void tsqsortl_parallel(long *base, size_t len)
 			} else {
 				end = len/nth * (n+1);
 			}
-			tsqexchange(base + start, end - start);
+			tsqexchange(base + start, end - start, NULL, NULL);
 		}
 		//join
 #ifdef _OPENMP
 #pragma omp parallel private(i, start, end, n) num_threads(nth)
 #endif
+		{}
 	}
 	return;
 }
 
 
+void tsqsortl(long *base, size_t len)
+{
+	if(len == 0) { return; }
+	if(len < PARALLEL_THRESH) {
+		tsqsortl_serial(base, len);
+	} else {
+		tsqsortl_parallel(base, len);
+	}
+	return;
+}
+
 void tsqsortl_serial(long *base, size_t len)
 {
+	long *ll, *rr;
 	if(len <= INSSORT_THRESH) {
 		/* insertion sort */
 		inssort(base, len);
@@ -309,11 +312,4 @@ void qsortl_serial(long *base, size_t len)
 		qsortl_serial(base+(l-la), ra-l);
 	}
 	return;
-}
-
-long get_us(void)
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return((long)tv.tv_sec * 1000000 + (long)tv.tv_usec);
 }
