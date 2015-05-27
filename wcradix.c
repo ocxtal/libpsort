@@ -3,32 +3,28 @@
  * @file wcradix.c
  *
  * @brief write-combining radix sort implementation.
- *
- * @detail
- * 
- *
  */
 #include <stdio.h>
-#include <omp.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <smmintrin.h>
+// #include "wcradix.h"
+#ifdef _OPENMP
+	#include <omp.h>
+#endif
+
 #define HAVE_SSE4				1
 
 #define BFR_OCC_SIZE			( 1<<8 )	/** 8bit */
 #define BFR_BUF_SIZE			( 64 )		/** 64 elements */
 
-/**
- * default variable types
- */
-struct elem {
-	unsigned long key;
-	unsigned long val;
+struct _elem {
+	uint64_t key;
+	uint64_t val;
 };
-#define elem_t					struct elem
-#define ulong_t 				unsigned long
-#define uchar_t 				unsigned char 
+
+typedef struct _elem elem_t;
 
 #if 0
 /**
@@ -65,7 +61,7 @@ void *aligned_malloc(size_t size, size_t align)
  * @param[in] from : the digit to be sorted from.
  * @param[in] to : the digit to be sorted to.
  */
-int wcradiximpl(elem_t *arr, ulong_t len, int from, int to)
+int wcradiximpl(elem_t *arr, uint64_t len, int from, int to)
 {
 	#ifdef _OPENMP
 		int threads = 4; //omp_get_num_threads();
@@ -74,13 +70,13 @@ int wcradiximpl(elem_t *arr, ulong_t len, int from, int to)
 	#endif
 	size_t arr_size = sizeof(elem_t)  * len,
 		   wb_size  = sizeof(elem_t)  * threads * BFR_OCC_SIZE * BFR_BUF_SIZE,
-		   nwb_size = sizeof(uchar_t) * threads * BFR_OCC_SIZE,
-		   occ_size = sizeof(ulong_t) * threads * BFR_OCC_SIZE;
+		   nwb_size = sizeof(uint8_t) * threads * BFR_OCC_SIZE,
+		   occ_size = sizeof(uint64_t) * threads * BFR_OCC_SIZE;
 	int mem_size = arr_size + wb_size + nwb_size + occ_size;
 	elem_t *src, *dest,
 		   (*wb)[BFR_OCC_SIZE][BFR_BUF_SIZE];
-	uchar_t (*nwb)[BFR_OCC_SIZE];
-	ulong_t (*occ)[BFR_OCC_SIZE];
+	uint8_t (*nwb)[BFR_OCC_SIZE];
+	uint64_t (*occ)[BFR_OCC_SIZE];
 	void *ptr = NULL, *swap;
 
 	if(from >= to) { return 1; }
@@ -90,8 +86,8 @@ int wcradiximpl(elem_t *arr, ulong_t len, int from, int to)
 	src = (elem_t *)ptr;		/** will be swaped in at the beginning of the for loop */
 	dest = (elem_t *)arr;
 	wb = (elem_t (*)[BFR_OCC_SIZE][BFR_BUF_SIZE])((void *)src     + arr_size);
-	nwb = (uchar_t (*)[BFR_OCC_SIZE])            ((void *)wb      + wb_size);
-	occ = (ulong_t (*)[BFR_OCC_SIZE])            ((void *)nwb     + nwb_size);
+	nwb = (uint8_t (*)[BFR_OCC_SIZE])            ((void *)wb      + wb_size);
+	occ = (uint64_t (*)[BFR_OCC_SIZE])            ((void *)nwb     + nwb_size);
 
 #pragma omp parallel num_threads(threads)
 	{
@@ -103,7 +99,7 @@ int wcradiximpl(elem_t *arr, ulong_t len, int from, int to)
 		int i, j, d;
 		int begin = (len * core) / threads,
 			end   = (core == threads-1) ? len : (len * (core+1)) / threads;
-		ulong_t sum, tmp, n, p;
+		uint64_t sum, tmp, n, p;
 		elem_t key;
 
 		for(d = from; d < to; d++) {
@@ -163,9 +159,9 @@ int wcradiximpl(elem_t *arr, ulong_t len, int from, int to)
  *
  * @brief an interface to integer sort function.
  */
-int wcradix(elem_t *arr, ulong_t len)
+int wcradix(elem_t *arr, uint64_t len)
 {
-	return(wcradiximpl(arr, len, 0, sizeof(ulong_t)));
+	return(wcradiximpl(arr, len, 0, sizeof(uint64_t)));
 }
 
 #ifdef TEST
@@ -215,7 +211,7 @@ void test_2(void)
 void bench(void)
 {
 	int i;
-	int const len = 10000;
+	int const len = 1000000;
 	elem_t *arr, e;
 	struct timeval ts, te;
 	arr = aligned_malloc(sizeof(elem_t) * len, 128);
