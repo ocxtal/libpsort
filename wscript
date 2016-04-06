@@ -14,6 +14,7 @@ def configure(conf):
 	if 'LIB_PTHREAD' not in conf.env:
 		conf.check_cc(lib = 'pthread')
 
+	conf.env.append_value('LIB_PSORT', conf.env.LIB_PTHREAD)
 	conf.env.append_value('CFLAGS', '-O3')
 	conf.env.append_value('CFLAGS', '-std=c99')
 	conf.env.append_value('CFLAGS', '-march=native')
@@ -26,13 +27,13 @@ def build(bld):
 	bld.stlib(
 		source = ['psort.c'],
 		target = 'psort',
-		lib = ['pthread'],
+		lib = bld.env.LIB_PSORT,
 		use = ['ptask'])
 
 	bld.program(
 		source = ['psort.c'],
 		target = 'unittest',
-		lib = ['pthread'],
+		lib = bld.env.LIB_PSORT,
 		use = ['ptask'],
 		defines = ['TEST'])
 
