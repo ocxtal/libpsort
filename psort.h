@@ -12,51 +12,35 @@
 #define _PSORT_H_INCLUDED
 
 /**
- * @type psort_t
- * @brief context container
- */
-typedef struct psort_s psort_t;
-
-/**
- * @fn psort_init
- */
-psort_t *psort_init(
-	int64_t num_threads,
-	int64_t elem_size);
-
-/**
- * @fn psort_clean
- */
-void psort_clean(
-	psort_t *ctx);
-
-/**
  * @fn psort_sort
  * @brief integer sort
  */
-void psort_sort(
-	psort_t *ctx,
-	void *ptr,
-	int64_t len);
-
-/**
- * @fn psort_keysort
- * @brief key sort (sort the lower half of the element)
- */
-void psort_keysort(
-	psort_t *ctx,
-	void *ptr,
-	int64_t len);
-
-/**
- * @fn psort_partialsort
- */
-void psort_partialsort(
-	psort_t *ctx,
+int psort_sort(
 	void *ptr,
 	int64_t len,
-	int64_t lower_digit,
-	int64_t higher_digit);
+	int64_t elem_size,
+	int64_t num_threads);
+
+/**
+ * @fn psort_half
+ * @brief key sort (sort the lower half of the element)
+ */
+int psort_half(
+	void *ptr,
+	int64_t len,
+	int64_t elem_size,
+	int64_t num_threads);
+
+/**
+ * @fn psort_partial
+ */
+int psort_partial(
+	void *arr,
+	int64_t len,
+	int64_t elem_size,
+	int64_t num_threads,
+	int64_t from,
+	int64_t to);
 
 #endif /* _PSORT_H_INCLUDED */
 /**
