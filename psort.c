@@ -19,12 +19,7 @@
 
 /* import unittest */
 #define UNITTEST_UNIQUE_ID			200
-
-#ifdef TEST
-/* use auto-generated main function to run tests */
 #define UNITTEST 					1
-#define UNITTEST_ALIAS_MAIN			1
-#endif
 
 #include  "unittest.h"
 

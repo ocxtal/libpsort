@@ -301,8 +301,6 @@ void join(psort_partialsort_parallel_, SUFFIX)(
 }
 
 /* unittests */
-#ifdef TEST
-
 unittest_config(
 	.name = "psort_radix_intl"
 );
@@ -498,7 +496,6 @@ unittest()
 	free(arr);
 	return;
 }
-#endif
 #endif
 
 /* cleanup macros */

@@ -15,7 +15,7 @@ def configure(conf):
 		conf.check_cc(lib = 'pthread')
 
 	conf.env.append_value('LIB_PSORT', conf.env.LIB_PTHREAD)
-	conf.env.append_value('CFLAGS', '-O3')
+	conf.env.append_value('CFLAGS', '-g')
 	conf.env.append_value('CFLAGS', '-std=c99')
 	conf.env.append_value('CFLAGS', '-march=native')
 
@@ -31,9 +31,10 @@ def build(bld):
 		use = ['ptask'])
 
 	bld.program(
-		source = ['psort.c'],
+		source = ['unittest.c'],
 		target = 'unittest',
+		linkflags = ['-all_load'],
+		use = ['ptask', 'psort'],
 		lib = bld.env.LIB_PSORT,
-		use = ['ptask'],
 		defines = ['TEST'])
 
