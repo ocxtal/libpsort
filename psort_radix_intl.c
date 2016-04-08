@@ -302,7 +302,8 @@ void join(psort_partialsort_parallel_, SUFFIX)(
 
 /* unittests */
 unittest_config(
-	.name = "psort_radix_intl"
+	.name = "psort_radix_intl",
+	.depends_on = { "ptask" }
 );
 
 /* small integer, single thread */
