@@ -292,6 +292,15 @@ void join(psort_partialsort_parallel_, SUFFIX)(
 		void *tmp = src; src = dst; dst = tmp;
 	}
 
+	/* copyback */
+	if((higher_digit - lower_digit) & 0x01) {
+		for(int64_t j = 0; j < nt; j++) {
+			th[j].src = src;
+			th[j].dst = dst;
+		}
+		ptask_parallel(pt, copyback, NULL);
+	}
+
 	/* cleanup ptask object */
 	ptask_clean(pt);
 

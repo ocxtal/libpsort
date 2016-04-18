@@ -216,6 +216,201 @@ int psort_partial(
 	return(-1);
 }
 
+/* unittest */
+#include <time.h>
+
+#define UNITTEST_UNIQUE_ID 		61
+unittest_config(
+	.name = "psort",
+	.depends_on = { "psort_radix_intl" }
+);
+
+#define UNITTEST_ARR_LEN		100
+
+/* srand */
+unittest()
+{
+	srand(time(NULL));
+}
+
+/* full sort 16bit */
+unittest()
+{
+	/* init */
+	uint16_t *arr = (uint16_t *)malloc(sizeof(uint16_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = rand() % UINT16_MAX;
+	}
+
+	/* sort */
+	psort_full(arr, UNITTEST_ARR_LEN, sizeof(uint16_t), 4);
+
+	/* check */
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert(arr[i - 1] <= arr[i], "%lld, %d, %d", i, arr[i - i], arr[i]);
+	}
+	free(arr);
+}
+
+/* full sort 32bit */
+unittest()
+{
+	/* init */
+	uint32_t *arr = (uint32_t *)malloc(sizeof(uint32_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = rand() % UINT32_MAX;
+	}
+
+	/* sort */
+	psort_full(arr, UNITTEST_ARR_LEN, sizeof(uint32_t), 4);
+
+	/* check */
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert(arr[i - 1] <= arr[i], "%lld, %d, %d", i, arr[i - i], arr[i]);
+	}
+	free(arr);
+}
+
+/* full sort 64bit */
+unittest()
+{
+	/* init */
+	uint64_t *arr = (uint64_t *)malloc(sizeof(uint64_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = (uint64_t)rand() + ((uint64_t)rand()<<32);
+	}
+
+	/* sort */
+	psort_full(arr, UNITTEST_ARR_LEN, sizeof(uint64_t), 4);
+
+	/* check */
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert(arr[i - 1] <= arr[i], "%lld, %lld, %lld", i, arr[i - i], arr[i]);
+	}
+	free(arr);
+}
+
+/* half sort 16bit */
+unittest()
+{
+	/* init */
+	uint16_t *arr = (uint16_t *)malloc(sizeof(uint16_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = rand() % UINT16_MAX;
+	}
+
+	/* sort */
+	psort_half(arr, UNITTEST_ARR_LEN, sizeof(uint16_t), 4);
+
+	/* check */
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert((0xff & arr[i - 1]) <= (0xff & arr[i]),
+			"%lld, %d, %d", i, 0xff & arr[i - i], 0xff & arr[i]);
+	}
+	free(arr);
+}
+
+/* half sort 32bit */
+unittest()
+{
+	/* init */
+	uint32_t *arr = (uint32_t *)malloc(sizeof(uint32_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = rand() % UINT32_MAX;
+	}
+
+	/* sort */
+	psort_half(arr, UNITTEST_ARR_LEN, sizeof(uint32_t), 4);
+
+	/* check */
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert((0xffff & arr[i - 1]) <= (0xffff & arr[i]),
+			"%lld, %d, %d", i, 0xffff & arr[i - i], 0xffff & arr[i]);
+	}
+	free(arr);
+}
+
+/* half sort 64bit */
+unittest()
+{
+	/* init */
+	uint64_t *arr = (uint64_t *)malloc(sizeof(uint64_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = (uint64_t)rand() + ((uint64_t)rand()<<32);
+	}
+
+	/* sort */
+	psort_half(arr, UNITTEST_ARR_LEN, sizeof(uint64_t), 4);
+
+	/* check */
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert((0xffffffff & arr[i - 1]) <= (0xffffffff & arr[i]),
+			"%lld, %lld, %lld", i, 0xffffffff & arr[i - i], 0xffffffff & arr[i]);
+	}
+	free(arr);
+}
+
+/* partial sort 16bit */
+unittest()
+{
+	/* init */
+	uint16_t *arr = (uint16_t *)malloc(sizeof(uint16_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = rand() % UINT16_MAX;
+	}
+
+	/* sort */
+	psort_partial(arr, UNITTEST_ARR_LEN, sizeof(uint16_t), 4, 1, 2);
+
+	/* check */
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert((0xff00 & arr[i - 1]) <= (0xff00 & arr[i]),
+			"%lld, %d, %d", i, 0xff00 & arr[i - i], 0xff00 & arr[i]);
+	}
+	free(arr);
+}
+
+/* partial sort 32bit */
+unittest()
+{
+	/* init */
+	uint32_t *arr = (uint32_t *)malloc(sizeof(uint32_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = rand() % UINT32_MAX;
+	}
+
+	/* sort */
+	psort_partial(arr, UNITTEST_ARR_LEN, sizeof(uint32_t), 4, 2, 4);
+
+	/* check */
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert((0xffff0000 & arr[i - 1]) <= (0xffff0000 & arr[i]),
+			"%lld, %d, %d", i, 0xffff0000 & arr[i - i], 0xffff0000 & arr[i]);
+	}
+	free(arr);
+}
+
+/* partial sort 64bit */
+unittest()
+{
+	/* init */
+	uint64_t *arr = (uint64_t *)malloc(sizeof(uint64_t) * UNITTEST_ARR_LEN);
+	for(int64_t i = 0; i < UNITTEST_ARR_LEN; i++) {
+		arr[i] = (uint64_t)rand() + ((uint64_t)rand()<<32);
+	}
+
+	/* sort */
+	psort_partial(arr, UNITTEST_ARR_LEN, sizeof(uint64_t), 4, 4, 8);
+
+	/* check */
+	uint64_t const mask = 0xffffffff00000000;
+	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
+		assert((mask & arr[i - 1]) <= (mask & arr[i]),
+			"%lld, %lld, %lld", i, mask & arr[i - i], mask & arr[i]);
+	}
+	free(arr);
+}
+
 /**
  * end of psort.c
  */
