@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 def options(opt):
+	opt.recurse('ptask')
 	opt.load('compiler_c')
 
 def configure(conf):
