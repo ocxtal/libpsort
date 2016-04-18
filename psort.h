@@ -12,10 +12,10 @@
 #define _PSORT_H_INCLUDED
 
 /**
- * @fn psort_sort
+ * @fn psort_full
  * @brief integer sort
  */
-int psort_sort(
+int psort_full(
 	void *ptr,
 	int64_t len,
 	int64_t elem_size,
