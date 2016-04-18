@@ -35,7 +35,7 @@ def build(bld):
 		source = ['unittest.c'],
 		target = 'unittest',
 		linkflags = ['-all_load'],
-		use = ['ptask', 'psort'],
+		use = ['psort'],
 		lib = bld.env.LIB_PSORT,
 		defines = ['TEST'])
 
