@@ -9,19 +9,18 @@
  * @license MIT
  */
 
-#include <stdint.h>
-#include <string.h>
-// #include "util.h"
-#include "arch/arch.h"
-#include "psort.h"
-#include "ptask/ptask.h"		/* pthread parallel task execution library */
-#include "log.h"
-
 /* import unittest */
 #define UNITTEST_UNIQUE_ID			200
 #define UNITTEST 					1
 
 #include  "unittest.h"
+
+#include <stdint.h>
+#include <string.h>
+#include "arch/arch.h"
+#include "psort.h"
+#include "ptask/ptask.h"		/* pthread parallel task execution library */
+#include "log.h"
 
 
 /* constants */
@@ -85,7 +84,9 @@ static _force_inline
 void *aligned_malloc(size_t size, size_t align)
 {
 	void *ptr;
-	posix_memalign(&ptr, align, size);
+	if(posix_memalign(&ptr, align, size) != 0) {
+		return(NULL);
+	}
 	return(ptr);
 }
 
