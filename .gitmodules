@@ -1,3 +1,3 @@
 [submodule "ptask"]
 	path = ptask
-	url = git@github.com:ocxtal/libptask.git
+	url = https://github.com/ocxtal/libptask.git
