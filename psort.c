@@ -119,7 +119,7 @@ void *psort_dispatcher(
 #define p 					_p
 #define e 					_e
 #define UNITTEST_UNIQUE_ID	SUFFIX
-#include "psort_radix_intl.c"
+#include "psort_radix_internal.c"
 // #include "psort_quick_intl.c"
 
 /* 32bit */
@@ -131,7 +131,7 @@ void *psort_dispatcher(
 #define p 					_p
 #define e 					_e
 #define UNITTEST_UNIQUE_ID	SUFFIX
-#include "psort_radix_intl.c"
+#include "psort_radix_internal.c"
 // #include "psort_quick_intl.c"
 
 /* 64bit */
@@ -143,7 +143,7 @@ void *psort_dispatcher(
 #define p 					_p
 #define e 					_e
 #define UNITTEST_UNIQUE_ID	SUFFIX
-#include "psort_radix_intl.c"
+#include "psort_radix_internal.c"
 // #include "psort_quick_intl.c"
 
 /* 128bit */
@@ -155,7 +155,7 @@ void *psort_dispatcher(
 #define p 					p_128
 #define e 					e_128
 #define UNITTEST_UNIQUE_ID	SUFFIX
-#include "psort_radix_intl.c"
+#include "psort_radix_internal.c"
 // #include "psort_quick_intl.c"
 
 /**
@@ -163,9 +163,9 @@ void *psort_dispatcher(
  */
 int psort_full(
 	void *arr,
-	int64_t len,
-	int64_t elem_size,
-	int64_t num_threads)
+	uint64_t len,
+	uint64_t elem_size,
+	uint64_t num_threads)
 {
 	switch(elem_size) {
 		case 2: psort_partialsort_parallel_16(arr, len, num_threads, 0, 2); return(0);
@@ -182,9 +182,9 @@ int psort_full(
  */
 int psort_half(
 	void *arr,
-	int64_t len,
-	int64_t elem_size,
-	int64_t num_threads)
+	uint64_t len,
+	uint64_t elem_size,
+	uint64_t num_threads)
 {
 	switch(elem_size) {
 		case 2: psort_partialsort_parallel_16(arr, len, num_threads, 0, 1); return(0);
@@ -201,11 +201,11 @@ int psort_half(
  */
 int psort_partial(
 	void *arr,
-	int64_t len,
-	int64_t elem_size,
-	int64_t num_threads,
-	int64_t from,
-	int64_t to)
+	uint64_t len,
+	uint64_t elem_size,
+	uint64_t num_threads,
+	uint64_t from,
+	uint64_t to)
 {
 	switch(elem_size) {
 		case 2: psort_partialsort_parallel_16(arr, len, num_threads, from, to); return(0);
@@ -223,7 +223,7 @@ int psort_partial(
 #define UNITTEST_UNIQUE_ID 		61
 unittest_config(
 	.name = "psort",
-	.depends_on = { "psort_radix_intl" }
+	.depends_on = { "psort_radix_internal" }
 );
 
 #define UNITTEST_ARR_LEN		100
@@ -248,7 +248,7 @@ unittest()
 
 	/* check */
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
-		assert(arr[i - 1] <= arr[i], "%lld, %d, %d", i, arr[i - i], arr[i]);
+		assert(arr[i - 1] <= arr[i], "%lld, %d, %d", i, arr[i - 1], arr[i]);
 	}
 	free(arr);
 }
@@ -267,7 +267,7 @@ unittest()
 
 	/* check */
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
-		assert(arr[i - 1] <= arr[i], "%lld, %d, %d", i, arr[i - i], arr[i]);
+		assert(arr[i - 1] <= arr[i], "%lld, %d, %d", i, arr[i - 1], arr[i]);
 	}
 	free(arr);
 }
@@ -286,7 +286,7 @@ unittest()
 
 	/* check */
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
-		assert(arr[i - 1] <= arr[i], "%lld, %lld, %lld", i, arr[i - i], arr[i]);
+		assert(arr[i - 1] <= arr[i], "%lld, %lld, %lld", i, arr[i - 1], arr[i]);
 	}
 	free(arr);
 }
@@ -306,7 +306,7 @@ unittest()
 	/* check */
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
 		assert((0xff & arr[i - 1]) <= (0xff & arr[i]),
-			"%lld, %d, %d", i, 0xff & arr[i - i], 0xff & arr[i]);
+			"%lld, %d, %d", i, 0xff & arr[i - 1], 0xff & arr[i]);
 	}
 	free(arr);
 }
@@ -326,7 +326,7 @@ unittest()
 	/* check */
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
 		assert((0xffff & arr[i - 1]) <= (0xffff & arr[i]),
-			"%lld, %d, %d", i, 0xffff & arr[i - i], 0xffff & arr[i]);
+			"%lld, %d, %d", i, 0xffff & arr[i - 1], 0xffff & arr[i]);
 	}
 	free(arr);
 }
@@ -346,7 +346,7 @@ unittest()
 	/* check */
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
 		assert((0xffffffff & arr[i - 1]) <= (0xffffffff & arr[i]),
-			"%lld, %lld, %lld", i, 0xffffffff & arr[i - i], 0xffffffff & arr[i]);
+			"%lld, %lld, %lld", i, 0xffffffff & arr[i - 1], 0xffffffff & arr[i]);
 	}
 	free(arr);
 }
@@ -366,7 +366,7 @@ unittest()
 	/* check */
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
 		assert((0xff00 & arr[i - 1]) <= (0xff00 & arr[i]),
-			"%lld, %d, %d", i, 0xff00 & arr[i - i], 0xff00 & arr[i]);
+			"%lld, %d, %d", i, 0xff00 & arr[i - 1], 0xff00 & arr[i]);
 	}
 	free(arr);
 }
@@ -386,7 +386,7 @@ unittest()
 	/* check */
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
 		assert((0xffff0000 & arr[i - 1]) <= (0xffff0000 & arr[i]),
-			"%lld, %d, %d", i, 0xffff0000 & arr[i - i], 0xffff0000 & arr[i]);
+			"%lld, %d, %d", i, 0xffff0000 & arr[i - 1], 0xffff0000 & arr[i]);
 	}
 	free(arr);
 }
@@ -407,7 +407,7 @@ unittest()
 	uint64_t const mask = 0xffffffff00000000;
 	for(int64_t i = 1; i < UNITTEST_ARR_LEN; i++) {
 		assert((mask & arr[i - 1]) <= (mask & arr[i]),
-			"%lld, %lld, %lld", i, mask & arr[i - i], mask & arr[i]);
+			"%lld, %lld, %lld", i, mask & arr[i - 1], mask & arr[i]);
 	}
 	free(arr);
 }
